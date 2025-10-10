@@ -7,7 +7,7 @@ probabilistic logic programming and formal reasoning systems.
 
 import asyncio
 import math
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple, Callable
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 import logging
@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 try:
     from .atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Link, Node
 except ImportError:
-    from atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Link, Node
+    try:
+        from atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Link, Node
+    except ImportError:
+        # For standalone testing
+        import sys
+        AtomSpaceManager = sys.modules.get('atomspace').AtomSpaceManager if 'atomspace' in sys.modules else None
 
 
 @dataclass
