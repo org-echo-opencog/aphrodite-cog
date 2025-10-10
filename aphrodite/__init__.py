@@ -34,6 +34,16 @@ MODULE_ATTRS = {
     "RequestOutput": ".common.outputs:RequestOutput",
     "ScoringOutput": ".common.outputs:ScoringOutput",
     "ScoringRequestOutput": ".common.outputs:ScoringRequestOutput",
+    # OpenCog cognitive architecture integration
+    "CognitiveEngine": ".opencog.cognitive_engine:CognitiveEngine",
+    "CognitiveConfig": ".opencog.cognitive_engine:CognitiveConfig",
+    "OpenCogAphroditeEngine": ".opencog.integration:OpenCogAphroditeEngine",
+    "OpenCogAphroditeEngineBuilder": ".opencog.integration:OpenCogAphroditeEngineBuilder",
+    "AtomSpaceManager": ".opencog.atomspace:AtomSpaceManager",
+    "Atom": ".opencog.atomspace:Atom",
+    "Node": ".opencog.atomspace:Node",
+    "Link": ".opencog.atomspace:Link",
+    "TruthValue": ".opencog.atomspace:TruthValue",
 }
 
 if typing.TYPE_CHECKING:
@@ -92,4 +102,14 @@ __all__ = [
     "AsyncEngineArgs",
     "initialize_ray_cluster",
     "PoolingParams",
+    # OpenCog cognitive architecture
+    "CognitiveEngine",
+    "CognitiveConfig",
+    "OpenCogAphroditeEngine",
+    "OpenCogAphroditeEngineBuilder",
+    "AtomSpaceManager",
+    "Atom",
+    "Node",
+    "Link",
+    "TruthValue",
 ]
