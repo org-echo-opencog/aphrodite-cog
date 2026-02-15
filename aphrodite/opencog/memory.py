@@ -279,8 +279,9 @@ class CognitiveMemory:
                     self._last_pattern_count = current_pattern_count
                     logger.debug(f"Adaptive consolidation triggered: {pattern_growth} new patterns")
                 
-                # Also perform periodic consolidation (but less frequently)
-                await asyncio.sleep(120.0)  # Check every 2 minutes instead of 1
+                # Also perform periodic checks (maximum interval between consolidation checks)
+                # This ensures consolidation runs at least every 2 minutes even with low pattern growth
+                await asyncio.sleep(120.0)
                 
             except asyncio.CancelledError:
                 break

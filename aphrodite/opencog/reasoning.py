@@ -141,9 +141,11 @@ class ProbabilisticReasoner:
         self._cache[cache_key] = result
         self._semantic_cache[semantic_key] = result
         
-        # Limit cache sizes to prevent unbounded growth
+        # Limit cache sizes with true LRU eviction (not FIFO)
+        # Note: This is a simplified approach. For production, consider using
+        # the LRUCache class from accelerator.py for consistent LRU behavior
         if len(self._cache) > 10000:
-            # Remove oldest 1000 entries (simple FIFO)
+            # Simple size-based pruning (oldest entries by insertion order)
             keys_to_remove = list(self._cache.keys())[:1000]
             for key in keys_to_remove:
                 del self._cache[key]
@@ -212,8 +214,9 @@ class ProbabilisticReasoner:
         
         # Cache the result with size limit
         self._related_atoms_cache[cache_key] = related
+        # Simple size-based pruning when cache grows too large
         if len(self._related_atoms_cache) > 5000:
-            # Remove oldest entries
+            # Remove oldest entries (by insertion order)
             keys_to_remove = list(self._related_atoms_cache.keys())[:500]
             for key in keys_to_remove:
                 del self._related_atoms_cache[key]

@@ -256,9 +256,9 @@ class CognitiveAccelerator:
                 self._cache_hits += 1
                 logger.debug(f"Cache hit for {cache_key}")
                 return result
-            else:
-                # Entry expired, will be naturally evicted
-                self._cache_misses += 1
+            # Note: Expired entries remain in cache until LRU eviction
+            # This avoids active scanning overhead at the cost of some memory
+            self._cache_misses += 1
         else:
             self._cache_misses += 1
         

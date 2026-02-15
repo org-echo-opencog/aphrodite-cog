@@ -463,12 +463,12 @@ Added batch processing for reduced lock overhead:
 
 | Operation | Before | After | Improvement |
 |-----------|--------|-------|-------------|
-| Cache lookup | O(n) | O(1) LRU | 10-50x faster |
+| Cache eviction | Fixed size dict | O(1) LRU | Better memory control |
 | Pattern similarity | O(n*m) Levenshtein | O(n) Jaccard | ~5x faster |
 | Graph traversal | Uncached BFS | Cached BFS | 3-4x on repeat |
 | Consolidation CPU | Fixed 60s | Adaptive 120s | 40-50% less |
 | Attention updates | Per-atom locks | Batch snapshots | 20-30% less contention |
-| Memory efficiency | Fixed dict | LRU eviction | 5x better |
+| Cache size control | Hard eviction | Configurable LRU | Flexible sizing |
 
 ### 💡 Best Practices
 

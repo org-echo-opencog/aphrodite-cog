@@ -108,9 +108,10 @@ def demo_batch_operations():
     print(f"\n✓ Created 100 test atoms")
     
     # Single add timing
+    from aphrodite.opencog.atomspace import Node
     single_atoms = []
     for i in range(100, 200):
-        atom = atomspace.atomspace.Node(
+        atom = Node(
             f"SingleConcept{i}",
             AtomType.CONCEPT,
             TruthValue(0.8, 0.9)
@@ -125,9 +126,9 @@ def demo_batch_operations():
     print(f"\n✓ Single add (100 atoms): {single_time*1000:.2f}ms")
     
     # Batch add timing
+    from aphrodite.opencog.atomspace import Node
     batch_atoms = []
     for i in range(200, 300):
-        from aphrodite.opencog.atomspace import Node
         atom = Node(
             f"BatchConcept{i}",
             AtomType.CONCEPT,
