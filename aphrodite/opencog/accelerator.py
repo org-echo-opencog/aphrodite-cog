@@ -10,7 +10,7 @@ import time
 import math
 from typing import Any, Dict, List, Optional, Callable, Set, Tuple
 from dataclasses import dataclass, field
-from collections import defaultdict, deque
+from collections import defaultdict, deque, OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import logging
@@ -18,6 +18,49 @@ logger = logging.getLogger(__name__)
 
 from .atomspace import AtomSpaceManager, Atom, AtomType, TruthValue
 from .cognitive_engine import CognitiveConfig
+
+
+class LRUCache:
+    """
+    Thread-safe LRU (Least Recently Used) cache implementation.
+    Provides O(1) get/set operations with automatic eviction.
+    """
+    
+    def __init__(self, max_size: int = 1000):
+        self.max_size = max_size
+        self._cache: OrderedDict = OrderedDict()
+        self._lock = threading.RLock()
+    
+    def get(self, key: str) -> Optional[Tuple[Any, float]]:
+        """Get item from cache, updating access time."""
+        with self._lock:
+            if key in self._cache:
+                # Move to end to mark as recently used
+                self._cache.move_to_end(key)
+                return self._cache[key]
+            return None
+    
+    def set(self, key: str, value: Any, timestamp: float):
+        """Set item in cache, evicting LRU if necessary."""
+        with self._lock:
+            if key in self._cache:
+                # Update existing entry
+                self._cache.move_to_end(key)
+            elif len(self._cache) >= self.max_size:
+                # Evict least recently used (first item)
+                self._cache.popitem(last=False)
+            
+            self._cache[key] = (value, timestamp)
+    
+    def clear(self):
+        """Clear all cache entries."""
+        with self._lock:
+            self._cache.clear()
+    
+    def size(self) -> int:
+        """Get current cache size."""
+        with self._lock:
+            return len(self._cache)
 
 
 @dataclass
@@ -86,8 +129,9 @@ class CognitiveAccelerator:
         # Acceleration strategies
         self._acceleration_strategies = self._initialize_strategies()
         
-        # Caching for repeated computations
-        self._computation_cache: Dict[str, Tuple[Any, float]] = {}
+        # LRU caching for repeated computations (optimized from simple dict)
+        cache_size = getattr(config, 'cache_size', 10000)  # Default 10k entries
+        self._computation_cache = LRUCache(max_size=cache_size)
         self._cache_hits = 0
         self._cache_misses = 0
         
@@ -203,37 +247,27 @@ class CognitiveAccelerator:
         """Check if result is available in computation cache."""
         cache_key = self._generate_cache_key(atom)
         
-        with self._lock:
-            if cache_key in self._computation_cache:
-                result, timestamp = self._computation_cache[cache_key]
-                
-                # Check if cache entry is still valid (10 minutes TTL)
-                if time.time() - timestamp < 600:
-                    logger.debug(f"Cache hit for {cache_key}")
-                    return result
-                else:
-                    # Remove expired entry
-                    del self._computation_cache[cache_key]
+        cached = self._computation_cache.get(cache_key)
+        if cached:
+            result, timestamp = cached
+            
+            # Check if cache entry is still valid (10 minutes TTL)
+            if time.time() - timestamp < 600:
+                self._cache_hits += 1
+                logger.debug(f"Cache hit for {cache_key}")
+                return result
+            # Note: Expired entries remain in cache until LRU eviction
+            # This avoids active scanning overhead at the cost of some memory
+            self._cache_misses += 1
+        else:
+            self._cache_misses += 1
         
         return None
     
     async def _cache_computation_result(self, atom: Atom, result: Dict[str, Any]):
-        """Cache a computation result."""
+        """Cache a computation result using LRU eviction."""
         cache_key = self._generate_cache_key(atom)
-        
-        with self._lock:
-            # Limit cache size
-            if len(self._computation_cache) >= 1000:
-                # Remove oldest entries
-                oldest_keys = sorted(
-                    self._computation_cache.keys(),
-                    key=lambda k: self._computation_cache[k][1]
-                )[:100]  # Remove oldest 100
-                
-                for key in oldest_keys:
-                    del self._computation_cache[key]
-            
-            self._computation_cache[cache_key] = (result, time.time())
+        self._computation_cache.set(cache_key, result, time.time())
     
     def _generate_cache_key(self, atom: Atom) -> str:
         """Generate a cache key for an atom."""

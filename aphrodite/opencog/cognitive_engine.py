@@ -46,6 +46,7 @@ class CognitiveConfig:
     # Performance configuration
     cognitive_cycles_per_second: int = 100
     max_concurrent_inferences: int = 16
+    cache_size: int = 10000  # LRU cache size for accelerator
     
     # Learning configuration
     learning_rate: float = 0.1
@@ -55,6 +56,59 @@ class CognitiveConfig:
     enable_attention_mechanism: bool = True
     enable_memory_consolidation: bool = True
     enable_cognitive_acceleration: bool = True
+    
+    @classmethod
+    def create_performance_optimized(cls) -> 'CognitiveConfig':
+        """
+        Create a performance-optimized configuration preset.
+        
+        Optimizations:
+        - Larger caches for better hit rates
+        - Reduced consolidation frequency
+        - Increased parallelism
+        - Faster convergence thresholds
+        """
+        return cls(
+            atomspace_max_size=2000000,  # 2x capacity
+            cache_size=50000,  # 5x cache size
+            reasoning_threads=8,  # More parallelism
+            max_concurrent_inferences=32,  # More concurrent work
+            cognitive_cycles_per_second=50,  # Less frequent cycles
+            enable_memory_consolidation=True,  # Keep enabled but adaptive
+            forgetting_rate=0.02,  # Faster forgetting to free memory
+            max_inference_steps=500,  # Faster convergence
+            batch_optimization=True,
+            parallel_inference=True,
+            adaptive_scheduling=True,
+        )
+    
+    @classmethod
+    def create_memory_optimized(cls) -> 'CognitiveConfig':
+        """
+        Create a memory-optimized configuration preset.
+        
+        Optimizations:
+        - Smaller atomspace and caches
+        - More aggressive forgetting
+        - Reduced parallelism
+        """
+        return cls(
+            atomspace_max_size=100000,  # 10x smaller
+            cache_size=5000,  # Smaller cache
+            memory_capacity=10000,
+            reasoning_threads=2,
+            max_concurrent_inferences=4,
+            cognitive_cycles_per_second=20,
+            enable_memory_consolidation=False,  # Disable to save memory
+            forgetting_rate=0.05,  # Aggressive forgetting
+        )
+    
+    @classmethod
+    def create_balanced(cls) -> 'CognitiveConfig':
+        """
+        Create a balanced configuration (default).
+        """
+        return cls()  # Use default values
 
 
 class CognitiveEngine:

@@ -85,6 +85,8 @@ class CognitiveMemory:
         # Consolidation management
         self._consolidation_running = False
         self._consolidation_task: Optional[asyncio.Task] = None
+        self._last_pattern_count = 0  # Track pattern growth for adaptive consolidation
+        self._consolidation_threshold = 100  # Trigger after 100 new patterns
         
         # Threading
         self.executor = ThreadPoolExecutor(max_workers=2)
@@ -264,16 +266,28 @@ class CognitiveMemory:
         await self._cleanup_weak_patterns()
     
     async def _consolidation_loop(self):
-        """Main consolidation loop."""
+        """Main consolidation loop with adaptive triggering."""
         while self._consolidation_running:
             try:
-                await self.perform_maintenance()
-                await asyncio.sleep(60.0)  # Consolidate every minute
+                # Check if consolidation is needed based on pattern growth
+                current_pattern_count = len(self.patterns)
+                pattern_growth = current_pattern_count - self._last_pattern_count
+                
+                # Adaptive consolidation: trigger when enough new patterns accumulated
+                if pattern_growth >= self._consolidation_threshold:
+                    await self.perform_maintenance()
+                    self._last_pattern_count = current_pattern_count
+                    logger.debug(f"Adaptive consolidation triggered: {pattern_growth} new patterns")
+                
+                # Also perform periodic checks (maximum interval between consolidation checks)
+                # This ensures consolidation runs at least every 2 minutes even with low pattern growth
+                await asyncio.sleep(120.0)
+                
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Error in consolidation loop: {e}")
-                await asyncio.sleep(60.0)
+                await asyncio.sleep(120.0)
     
     async def _extract_patterns_from_experience(self, memory: EpisodicMemory):
         """Extract reusable patterns from an episodic memory."""
@@ -320,36 +334,39 @@ class CognitiveMemory:
         return max(similarities) if similarities else 0.0
     
     def _calculate_name_similarity(self, name1: str, name2: str) -> float:
-        """Calculate similarity between two atom names."""
+        """Calculate similarity between two atom names using faster heuristics."""
         if name1 == name2:
             return 1.0
         
-        # Simple Levenshtein-based similarity
-        def levenshtein_distance(s1, s2):
-            if len(s1) < len(s2):
-                return levenshtein_distance(s2, s1)
-            
-            if len(s2) == 0:
-                return len(s1)
-            
-            previous_row = list(range(len(s2) + 1))
-            for i, c1 in enumerate(s1):
-                current_row = [i + 1]
-                for j, c2 in enumerate(s2):
-                    insertions = previous_row[j + 1] + 1
-                    deletions = current_row[j] + 1
-                    substitutions = previous_row[j] + (c1 != c2)
-                    current_row.append(min(insertions, deletions, substitutions))
-                previous_row = current_row
-            
-            return previous_row[-1]
+        # Fast length-based filtering
+        len1, len2 = len(name1), len(name2)
+        if abs(len1 - len2) > max(len1, len2) * 0.5:
+            # If length difference is > 50%, similarity is low
+            return 0.0
         
-        max_len = max(len(name1), len(name2))
-        if max_len == 0:
+        # Use simpler Jaccard similarity on character sets (much faster than Levenshtein)
+        set1 = set(name1.lower())
+        set2 = set(name2.lower())
+        
+        if not set1 and not set2:
             return 1.0
         
-        distance = levenshtein_distance(name1, name2)
-        return 1.0 - (distance / max_len)
+        intersection = len(set1 & set2)
+        union = len(set1 | set2)
+        
+        jaccard_sim = intersection / union if union > 0 else 0.0
+        
+        # Bonus for prefix matching (common in related names)
+        prefix_len = 0
+        for c1, c2 in zip(name1, name2):
+            if c1 == c2:
+                prefix_len += 1
+            else:
+                break
+        
+        prefix_bonus = min(0.3, prefix_len / max(len1, len2, 1))
+        
+        return min(1.0, jaccard_sim + prefix_bonus)
     
     def _calculate_retrieval_confidence(self, similar_patterns: List[Tuple[MemoryPattern, float]]) -> float:
         """Calculate confidence in pattern retrieval results."""

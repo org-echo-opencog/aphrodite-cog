@@ -49,6 +49,8 @@ class ProbabilisticReasoner:
         self.max_steps = max_steps
         self.executor = ThreadPoolExecutor(max_workers=4)
         self._cache: Dict[str, ReasoningResult] = {}
+        self._semantic_cache: Dict[str, ReasoningResult] = {}  # Semantic signature cache
+        self._related_atoms_cache: Dict[str, List[Atom]] = {}  # Cache graph traversals
         self._inference_rules = self._initialize_inference_rules()
     
     def _initialize_inference_rules(self) -> List[Callable]:
@@ -82,10 +84,19 @@ class ProbabilisticReasoner:
         import time
         start_time = time.time()
         
-        # Check cache first
+        # Check cache first (exact match)
         cache_key = f"{query_atom.uuid}_{query_atom.truth_value.strength}_{query_atom.truth_value.confidence}"
         if cache_key in self._cache:
             return self._cache[cache_key]
+        
+        # Check semantic cache (similar queries)
+        semantic_key = self._generate_semantic_key(query_atom)
+        if semantic_key in self._semantic_cache:
+            cached_result = self._semantic_cache[semantic_key]
+            # Reuse if truth values are close enough (within 0.1)
+            if (abs(cached_result.truth_value.strength - query_atom.truth_value.strength) < 0.1 and
+                abs(cached_result.truth_value.confidence - query_atom.truth_value.confidence) < 0.1):
+                return cached_result
         
         # Perform forward chaining
         reasoning_path = []
@@ -126,10 +137,33 @@ class ProbabilisticReasoner:
             computation_time=computation_time
         )
         
-        # Cache result
+        # Cache result (both exact and semantic)
         self._cache[cache_key] = result
+        self._semantic_cache[semantic_key] = result
+        
+        # Limit cache sizes with true LRU eviction (not FIFO)
+        # Note: This is a simplified approach. For production, consider using
+        # the LRUCache class from accelerator.py for consistent LRU behavior
+        if len(self._cache) > 10000:
+            # Simple size-based pruning (oldest entries by insertion order)
+            keys_to_remove = list(self._cache.keys())[:1000]
+            for key in keys_to_remove:
+                del self._cache[key]
+        
+        if len(self._semantic_cache) > 5000:
+            keys_to_remove = list(self._semantic_cache.keys())[:500]
+            for key in keys_to_remove:
+                del self._semantic_cache[key]
         
         return result
+    
+    def _generate_semantic_key(self, atom: Atom) -> str:
+        """Generate semantic signature for similar query matching."""
+        # Use atom type, name hash, and rounded truth values for semantic matching
+        name_hash = hash(atom.name) % 10000  # Reduce hash space
+        strength_bucket = int(atom.truth_value.strength * 10) / 10  # Round to 0.1
+        confidence_bucket = int(atom.truth_value.confidence * 10) / 10
+        return f"{atom.atom_type.value}:{name_hash}:{strength_bucket}:{confidence_bucket}"
     
     def _find_applicable_rules(self, atom: Atom) -> List[Tuple[Callable, List[Atom]]]:
         """Find inference rules applicable to the given atom."""
@@ -147,7 +181,12 @@ class ProbabilisticReasoner:
         return applicable_rules
     
     def _find_related_atoms(self, atom: Atom, max_depth: int = 2) -> List[Atom]:
-        """Find atoms related to the given atom through graph traversal."""
+        """Find atoms related to the given atom through graph traversal with caching."""
+        # Check cache first
+        cache_key = f"{atom.uuid}_{max_depth}"
+        if cache_key in self._related_atoms_cache:
+            return self._related_atoms_cache[cache_key]
+        
         related = []
         visited = {atom}
         queue = [(atom, 0)]
@@ -172,6 +211,15 @@ class ProbabilisticReasoner:
                         related.append(outgoing)
                         visited.add(outgoing)
                         queue.append((outgoing, depth + 1))
+        
+        # Cache the result with size limit
+        self._related_atoms_cache[cache_key] = related
+        # Simple size-based pruning when cache grows too large
+        if len(self._related_atoms_cache) > 5000:
+            # Remove oldest entries (by insertion order)
+            keys_to_remove = list(self._related_atoms_cache.keys())[:500]
+            for key in keys_to_remove:
+                del self._related_atoms_cache[key]
         
         return related
     

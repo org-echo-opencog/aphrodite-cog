@@ -549,21 +549,37 @@ class AttentionManager:
         logger.debug(f"Allocated attention {allocation.attention_value:.3f} to atom {atom.uuid}")
     
     async def update_attention_values(self):
-        """Update attention values for all atoms."""
+        """Update attention values for all atoms with batch processing."""
         current_time = time.time()
         
+        # Collect updates without holding lock for entire operation
+        updates_to_apply = []
+        atoms_to_remove = []
+        
         with self._lock:
-            for atom_uuid, allocation in list(self._attention_allocations.items()):
-                # Decay attention over time
-                time_decay = max(0.0, 1.0 - (current_time - allocation.last_accessed) * 0.001)
-                new_attention = allocation.attention_value * time_decay
-                
+            # Quick snapshot of allocations
+            allocations_snapshot = list(self._attention_allocations.items())
+        
+        # Process updates outside the lock
+        for atom_uuid, allocation in allocations_snapshot:
+            # Decay attention over time
+            time_decay = max(0.0, 1.0 - (current_time - allocation.last_accessed) * 0.001)
+            new_attention = allocation.attention_value * time_decay
+            
+            if new_attention < 0.01:
+                atoms_to_remove.append(atom_uuid)
+            else:
+                updates_to_apply.append((atom_uuid, new_attention, allocation))
+        
+        # Apply all updates in one lock acquisition
+        with self._lock:
+            for atom_uuid, new_attention, allocation in updates_to_apply:
                 allocation.attention_value = new_attention
                 allocation.atom.attention_value = new_attention
-                
-                # Remove atoms with very low attention
-                if new_attention < 0.01:
-                    del self._attention_allocations[atom_uuid]
+            
+            # Batch remove low-attention atoms
+            for atom_uuid in atoms_to_remove:
+                self._attention_allocations.pop(atom_uuid, None)
     
     async def _attention_update_loop(self):
         """Main attention update loop."""
@@ -579,19 +595,30 @@ class AttentionManager:
                 await asyncio.sleep(1.0)
     
     async def _redistribute_attention(self):
-        """Redistribute attention based on global constraints."""
+        """Redistribute attention based on global constraints with optimized calculation."""
+        # Quick check without lock if possible
+        if not self._attention_allocations:
+            return
+        
         total_attention_budget = len(self.atomspace._atoms) * self.allocation_rate
         
+        # Calculate current total and prepare scale factor outside main lock
         with self._lock:
             if not self._attention_allocations:
                 return
             
+            # Fast sum of attention values
             current_total = sum(a.attention_value for a in self._attention_allocations.values())
-            
-            if current_total > total_attention_budget:
-                # Scale down all attention values proportionally
-                scale_factor = total_attention_budget / current_total
-                
-                for allocation in self._attention_allocations.values():
-                    allocation.attention_value *= scale_factor
-                    allocation.atom.attention_value *= scale_factor
+        
+        # Only redistribute if over budget (most common case is under budget)
+        if current_total <= total_attention_budget:
+            return
+        
+        # Calculate scale factor
+        scale_factor = total_attention_budget / current_total
+        
+        # Batch apply scaling
+        with self._lock:
+            for allocation in self._attention_allocations.values():
+                allocation.attention_value *= scale_factor
+                allocation.atom.attention_value = allocation.attention_value
