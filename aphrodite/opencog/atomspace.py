@@ -123,6 +123,49 @@ class AtomSpaceManager:
             
             return atom
     
+    def add_atoms_batch(self, atoms: List[Atom]) -> List[Atom]:
+        """
+        Add multiple atoms in a single batch operation.
+        More efficient than individual adds due to reduced lock overhead.
+        
+        Args:
+            atoms: List of atoms to add
+            
+        Returns:
+            List of added/merged atoms
+        """
+        results = []
+        
+        with self._lock:
+            # Check capacity once
+            if len(self._atoms) + len(atoms) >= self.max_size:
+                self._cleanup_low_attention_atoms()
+            
+            for atom in atoms:
+                # Check if atom already exists
+                existing = self.get_atom_by_name_and_type(atom.name, atom.atom_type)
+                if existing:
+                    # Merge truth values
+                    existing.truth_value = self._merge_truth_values(
+                        existing.truth_value, atom.truth_value)
+                    results.append(existing)
+                    continue
+                
+                self._atoms[atom.uuid] = atom
+                
+                # Update indices
+                if atom.name not in self._name_index:
+                    self._name_index[atom.name] = set()
+                self._name_index[atom.name].add(atom)
+                
+                if atom.atom_type not in self._type_index:
+                    self._type_index[atom.atom_type] = set()
+                self._type_index[atom.atom_type].add(atom)
+                
+                results.append(atom)
+        
+        return results
+    
     def get_atom_by_name_and_type(self, name: str, 
                                   atom_type: AtomType) -> Optional[Atom]:
         """Get atom by name and type."""
