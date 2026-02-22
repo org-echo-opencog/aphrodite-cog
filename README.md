@@ -41,6 +41,9 @@ If you're not serving at scale, you can append the `--single-user-mode` flag to 
 
 This will create a [OpenAI](https://platform.openai.com/docs/api-reference/)-compatible API server that can be accessed at port 2242 of the localhost. You can plug in the API into a UI that supports OpenAI, such as [SillyTavern](https://github.com/SillyTavern/SillyTavern).
 
+**NEW: Integrated SillyTavern Frontend** 🎨  
+This repository now includes an integrated SillyTavern UI in the `frontend/` directory. See the [Quick Start Guide](QUICKSTART.md) for easy setup, or check out the [full integration documentation](frontend/APHRODITE_INTEGRATION.md) for deployment options including GitHub Pages hosting.
+
 Please refer to the [documentation](https://aphrodite.pygmalion.chat) for the full list of arguments and flags you can pass to the engine, or simply run `aphrodite run -h` to see the full list of arguments.
 
 You can play around with the engine in the demo here:
