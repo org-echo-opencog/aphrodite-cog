@@ -90,8 +90,11 @@ hostWhitelist:
   hosts: []
 
 sessionTimeout: -1
-disableCsrfProtection: true  # Required for static deployment
-securityOverride: true  # Required for static deployment
+# WARNING: The following settings significantly reduce security and should ONLY be used
+# for static GitHub Pages deployment where the backend handles all security.
+# For local/server deployments, keep these set to false!
+disableCsrfProtection: true  # Required for static deployment - DO NOT USE in production server mode
+securityOverride: true  # Required for static deployment - DO NOT USE in production server mode
 
 # -- LOGGING CONFIGURATION --
 logging:
@@ -142,9 +145,12 @@ requestOverrides: []
 # EXTENSIONS CONFIGURATION
 extensions:
   enabled: true
-  autoUpdate: false  # Disable for static deployment
+  # Auto-update disabled for static deployment
+  # For manual updates, see: https://docs.sillytavern.app/extensions/
+  autoUpdate: false
   models:
-    autoDownload: false  # Disable for static deployment
+    # Auto-download disabled for static deployment to prevent server-side operations
+    autoDownload: false
     classification: Cohee/distilbert-base-uncased-go-emotions-onnx
     captioning: Xenova/vit-gpt2-image-captioning
     embedding: Cohee/jina-embeddings-v2-base-en

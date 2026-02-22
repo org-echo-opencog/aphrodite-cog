@@ -48,7 +48,8 @@ jobs:
           # Copy all necessary files
           cp -r public build/
           cp -r src build/
-          cp server.js build/ || true
+          # server.js is not needed for static deployment, only for local server mode
+          # cp server.js build/ || true
           cp package.json build/
           cp aphrodite-config.yaml build/config.yaml
           cp APHRODITE_INTEGRATION.md build/

@@ -44,6 +44,15 @@ const APHRODITE_CONFIG = {
 // Helper function to generate OpenAI API connection string
 function getAphroditeConnectionString(host = 'localhost', port = 2242, ssl = false) {
     const protocol = ssl ? 'https' : 'http';
+    
+    // Port validation: warn if SSL is enabled but port is not standard HTTPS
+    if (ssl && port !== 443) {
+        console.warn(
+            `Warning: SSL is enabled but port is ${port}. ` +
+            'Consider using port 443 for HTTPS or ensure your server is configured correctly.'
+        );
+    }
+    
     return `${protocol}://${host}:${port}/v1`;
 }
 

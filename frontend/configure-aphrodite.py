@@ -23,7 +23,7 @@ def check_backend(api_url: str, timeout: int = 5) -> Dict[str, Any]:
         timeout: Request timeout in seconds
         
     Returns:
-        Dictionary with status and model information
+        Dictionary with status, message, and models (always present)
     """
     models_endpoint = f"{api_url}/models"
     
@@ -45,16 +45,19 @@ def check_backend(api_url: str, timeout: int = 5) -> Dict[str, Any]:
     except urllib.error.HTTPError as e:
         return {
             'status': 'error',
+            'models': [],
             'message': f'HTTP Error {e.code}: {e.reason}'
         }
     except urllib.error.URLError as e:
         return {
             'status': 'error',
+            'models': [],
             'message': f'Connection failed: {e.reason}'
         }
     except Exception as e:
         return {
             'status': 'error',
+            'models': [],
             'message': f'Unexpected error: {str(e)}'
         }
 
