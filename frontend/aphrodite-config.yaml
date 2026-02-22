@@ -1,0 +1,197 @@
+# Aphrodite Integration Configuration for SillyTavern
+# This configuration is designed for static deployment (GitHub Pages)
+# The frontend will connect to an Aphrodite backend API
+
+# -- DATA CONFIGURATION --
+dataRoot: ./data
+
+# -- SERVER CONFIGURATION --
+# For GitHub Pages deployment, these settings are mostly ignored
+# but kept for local development
+listen: false
+listenAddress:
+  ipv4: 0.0.0.0
+  ipv6: '[::]'
+protocol:
+    ipv4: true
+    ipv6: false
+dnsPreferIPv6: false
+
+# -- BROWSER LAUNCH CONFIGURATION --
+browserLaunch:
+  enabled: false
+  browser: 'default'
+  hostname: 'auto'
+  port: -1
+  avoidLocalhost: false
+
+# Server port (for local development only)
+port: 8000
+heartbeatInterval: 0
+
+# -- SSL options --
+ssl:
+  enabled: false
+  certPath: "./certs/cert.pem"
+  keyPath: "./certs/privkey.pem"
+  keyPassphrase: ""
+
+# -- SECURITY CONFIGURATION --
+# For GitHub Pages deployment, whitelist mode is disabled
+whitelistMode: false
+enableForwardedWhitelist: false
+whitelist: []
+whitelistDockerHosts: false
+basicAuthMode: false
+basicAuthUser:
+  username: "user"
+  password: "password"
+
+# Enable CORS for API access
+enableCorsProxy: true
+cors:
+  enabled: true
+  origin: "*"
+  methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allowedHeaders:
+    - "Content-Type"
+    - "Authorization"
+    - "X-Requested-With"
+  exposedHeaders: []
+  credentials: true
+  maxAge: 86400
+
+# -- REQUEST PROXY CONFIGURATION --
+requestProxy:
+  enabled: false
+  url: ""
+  bypass:
+    - localhost
+    - 127.0.0.1
+
+# Disable multi-user mode for static deployment
+enableUserAccounts: false
+enableDiscreetLogin: false
+perUserBasicAuth: false
+
+# -- SSO LOGIN CONFIGURATION --
+sso:
+  autheliaAuth: false
+  authentikAuth: false
+
+hostWhitelist:
+  enabled: false
+  scan: false
+  hosts: []
+
+sessionTimeout: -1
+# WARNING: The following settings significantly reduce security and should ONLY be used
+# for static GitHub Pages deployment where the backend handles all security.
+# For local/server deployments, keep these set to false!
+disableCsrfProtection: true  # Required for static deployment - DO NOT USE in production server mode
+securityOverride: true  # Required for static deployment - DO NOT USE in production server mode
+
+# -- LOGGING CONFIGURATION --
+logging:
+  enableAccessLog: true
+  minLogLevel: 0
+
+# -- RATE LIMITING CONFIGURATION --
+rateLimiting:
+  preferRealIpHeader: false
+
+## BACKUP CONFIGURATION
+backups:
+  common:
+    numberOfBackups: 50
+  chat:
+    enabled: true
+    checkIntegrity: true
+    maxTotalBackups: -1
+    throttleInterval: 10000
+
+# THUMBNAILING CONFIGURATION
+thumbnails:
+  enabled: true
+  format: "jpg"
+  quality: 95
+  dimensions: { 'bg': [160, 90], 'avatar': [96, 144], 'persona': [96, 144] }
+
+# PERFORMANCE-RELATED CONFIGURATION
+performance:
+  lazyLoadCharacters: true
+  memoryCacheCapacity: '100mb'
+  useDiskCache: true
+
+# CACHE BUSTER CONFIGURATION
+cacheBuster:
+  enabled: false
+  userAgentPattern: ''
+
+allowKeysExposure: false
+skipContentCheck: false
+whitelistImportDomains:
+  - localhost
+  - cdn.discordapp.com
+  - files.catbox.moe
+  - raw.githubusercontent.com
+requestOverrides: []
+
+# EXTENSIONS CONFIGURATION
+extensions:
+  enabled: true
+  # Auto-update disabled for static deployment
+  # For manual updates, see: https://docs.sillytavern.app/extensions/
+  autoUpdate: false
+  models:
+    # Auto-download disabled for static deployment to prevent server-side operations
+    autoDownload: false
+    classification: Cohee/distilbert-base-uncased-go-emotions-onnx
+    captioning: Xenova/vit-gpt2-image-captioning
+    embedding: Cohee/jina-embeddings-v2-base-en
+    speechToText: Xenova/whisper-small
+    textToSpeech: Xenova/speecht5_tts
+
+enableDownloadableTokenizers: true
+
+# -- OPENAI CONFIGURATION (for Aphrodite compatibility) --
+promptPlaceholder: "[Start a new chat]"
+openai:
+  randomizeUserId: false
+  captionSystemPrompt: ""
+
+# -- DEEPL TRANSLATION CONFIGURATION --
+deepl:
+  formality: default
+
+# -- MISTRAL API CONFIGURATION --
+mistral:
+  enablePrefix: false
+
+# -- OLLAMA API CONFIGURATION --
+ollama:
+  keepAlive: -1
+  batchSize: -1
+
+# -- ANTHROPIC CLAUDE API CONFIGURATION --
+claude:
+  enableSystemPromptCache: false
+  cachingAtDepth: -1
+  extendedTTL: false
+
+# -- GOOGLE GEMINI API CONFIGURATION --
+gemini:
+  apiVersion: 'v1beta'
+  thoughtSignatures: true
+  enableSystemPromptCache: false
+  image:
+    personGeneration: 'allow_adult'
+
+# -- SERVER PLUGIN CONFIGURATION --
+enableServerPlugins: false
+enableServerPluginsAutoUpdate: false
