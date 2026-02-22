@@ -1,0 +1,80 @@
+name: Deploy SillyTavern Frontend to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+      
+      - name: Build frontend
+        run: |
+          cd frontend
+          # SillyTavern doesn't need a build step - it's mostly static files
+          # Copy necessary files to a build directory
+          mkdir -p build
+          
+          # Copy all necessary files
+          cp -r public build/
+          cp -r src build/
+          cp server.js build/ || true
+          cp package.json build/
+          cp aphrodite-config.yaml build/config.yaml
+          cp APHRODITE_INTEGRATION.md build/
+          
+          # Create a simple index redirect if needed
+          if [ ! -f build/public/index.html ]; then
+            echo "Creating index.html redirect..."
+            echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=public/index.html"></head><body>Redirecting...</body></html>' > build/index.html
+          fi
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'frontend/build'
+  
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

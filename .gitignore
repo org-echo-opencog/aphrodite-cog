@@ -216,3 +216,14 @@ ep_kernels_workspace/
 CMakeUserPresets.json
 cmake-build*/
 aphrodite/aphrodite_flash_attn/*
+
+# SillyTavern frontend - runtime data
+frontend/data/
+frontend/backups/
+frontend/node_modules/
+frontend/plugins/
+frontend/.github/
+frontend/.vscode/
+frontend/public/user-files/
+frontend/thumbnails/
+frontend/package-lock.json
