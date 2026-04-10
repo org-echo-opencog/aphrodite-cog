@@ -6,18 +6,19 @@ and consolidation capabilities for large-scale inference optimization.
 """
 
 import asyncio
+import contextlib
 import time
-import pickle
 from typing import Any, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
-from collections import defaultdict, deque
+from collections import defaultdict
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import math
 import logging
-logger = logging.getLogger(__name__)
 
-from .atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Node, Link
+from .atomspace import AtomSpaceManager, Atom
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -252,10 +253,8 @@ class CognitiveMemory:
             
             if self._consolidation_task:
                 self._consolidation_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await self._consolidation_task
-                except asyncio.CancelledError:
-                    pass
             
             logger.info("Memory consolidation stopped")
     
