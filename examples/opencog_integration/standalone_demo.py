@@ -9,6 +9,7 @@ import os
 import asyncio
 import time
 import logging
+import importlib.util
 
 # Setup logging
 logging.basicConfig(
@@ -17,11 +18,11 @@ logging.basicConfig(
 )
 
 # Add project root to path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+project_root = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..')
+)
 sys.path.insert(0, project_root)
 
-# Import OpenCog modules directly
-import importlib.util
 
 def load_opencog_module(module_name, file_path):
     """Load OpenCog module from file path."""
@@ -57,18 +58,18 @@ def demonstrate_atomspace():
     nn = atomspace.create_node("NeuralNetworks", AtomType.CONCEPT, TruthValue(0.8, 0.75))
     
     # Create hierarchical relationships
-    ml_isa_ai = atomspace.create_link(
+    atomspace.create_link(
         "ML-IsA-AI", [ml, ai], AtomType.INHERITANCE, TruthValue(0.9, 0.95)
     )
-    dl_isa_ml = atomspace.create_link(
+    atomspace.create_link(
         "DL-IsA-ML", [dl, ml], AtomType.INHERITANCE, TruthValue(0.85, 0.9)
     )
-    nn_isa_dl = atomspace.create_link(
+    atomspace.create_link(
         "NN-IsA-DL", [nn, dl], AtomType.INHERITANCE, TruthValue(0.8, 0.85)
     )
     
     # Create similarity relationships  
-    dl_similar_nn = atomspace.create_link(
+    atomspace.create_link(
         "DL-Similar-NN", [dl, nn], AtomType.SIMILARITY, TruthValue(0.95, 0.9)
     )
     
@@ -137,14 +138,14 @@ def demonstrate_reasoning():
     ai_dev = atomspace.create_node("AI_Development", AtomType.CONCEPT, TruthValue(0.8, 0.75))
     
     # Implications
-    python_implies_programming = atomspace.create_link(
+    atomspace.create_link(
         "Python->Programming", 
         [python, programming], 
         AtomType.IMPLICATION, 
         TruthValue(0.9, 0.9)
     )
     
-    ai_dev_implies_python = atomspace.create_link(
+    atomspace.create_link(
         "AI_Dev->Python",
         [ai_dev, python],
         AtomType.IMPLICATION, 
@@ -236,7 +237,7 @@ def demonstrate_large_scale_processing():
         
         relation_type = AtomType.INHERITANCE if i % 2 == 0 else AtomType.SIMILARITY
         
-        relationship = large_atomspace.create_link(
+        large_atomspace.create_link(
             f"relation_{i}",
             [concept1, concept2],
             relation_type,
@@ -286,12 +287,11 @@ def demonstrate_large_scale_processing():
     print(f"   Attention filtering time: {attention_time:.4f}s")
     
     # Memory usage estimation
-    import sys
     atom_memory = sys.getsizeof(large_atomspace._atoms)
     index_memory = sys.getsizeof(large_atomspace._name_index) + sys.getsizeof(large_atomspace._type_index)
     total_memory = atom_memory + index_memory
     
-    print(f"\n4. Memory usage estimation:")
+    print("\n4. Memory usage estimation:")
     print(f"   Atoms storage: ~{atom_memory / 1024:.1f} KB")
     print(f"   Index storage: ~{index_memory / 1024:.1f} KB") 
     print(f"   Total estimated: ~{total_memory / 1024:.1f} KB")

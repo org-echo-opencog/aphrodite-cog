@@ -5,19 +5,21 @@ Provides the main cognitive processing engine that orchestrates large-scale
 inference through cognitive architecture patterns.
 """
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Callable
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 import asyncio
+import contextlib
 import threading
 from concurrent.futures import ThreadPoolExecutor
 import logging
-logger = logging.getLogger(__name__)
 
 from .atomspace import AtomSpaceManager, Atom, TruthValue
 from .reasoning import ProbabilisticReasoner, LogicEngine
 from .orchestrator import InferenceOrchestrator, AttentionManager
 from .memory import CognitiveMemory
 from .accelerator import CognitiveAccelerator
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -196,10 +198,8 @@ class CognitiveEngine:
             # Stop cognitive cycle
             if self._cognitive_cycle_task:
                 self._cognitive_cycle_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await self._cognitive_cycle_task
-                except asyncio.CancelledError:
-                    pass
             
             # Stop components
             await self.orchestrator.stop()

@@ -6,7 +6,7 @@ enabling large-scale inference through hypergraph-based semantic networks.
 """
 
 import uuid
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass
 from enum import Enum
 import threading

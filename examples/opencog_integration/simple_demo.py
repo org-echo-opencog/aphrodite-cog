@@ -7,13 +7,11 @@ This is a minimal demo that showcases the core capabilities.
 import sys
 import os
 import time
+import importlib.util
 
 # Add project root to path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, project_root)
-
-# Load AtomSpace module directly
-import importlib.util
 
 def load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, os.path.join(project_root, path))
@@ -53,17 +51,17 @@ def main():
         print(f"  📝 Created {atomspace.get_atoms_by_type(AtomType.CONCEPT).__len__()} concepts")
         
         # Relationships
-        ml_isa_ai = atomspace.create_link(
+        atomspace.create_link(
             "ML inherits from AI", [ml, ai], 
             AtomType.INHERITANCE, TruthValue(0.9, 0.95)
         )
         
-        reasoning_isa_cognition = atomspace.create_link(
+        atomspace.create_link(
             "Reasoning inherits from Cognition", [reasoning, cognition],
             AtomType.INHERITANCE, TruthValue(0.85, 0.9)
         )
         
-        ai_similar_cognition = atomspace.create_link(
+        atomspace.create_link(
             "AI similar to Cognition", [ai, cognition],
             AtomType.SIMILARITY, TruthValue(0.8, 0.85)
         )

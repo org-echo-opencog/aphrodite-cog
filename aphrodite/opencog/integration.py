@@ -6,12 +6,10 @@ with the existing Aphrodite inference engine for enhanced performance
 and intelligent orchestration.
 """
 
-import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 import time
 import logging
-logger = logging.getLogger(__name__)
 
 from ..engine.aphrodite_engine import AphroditeEngine
 from ..common.sampling_params import SamplingParams
@@ -19,7 +17,8 @@ from ..common.outputs import RequestOutput
 from ..inputs import PromptType
 from ..lora.request import LoRARequest
 from .cognitive_engine import CognitiveEngine, CognitiveConfig
-from .atomspace import AtomSpaceManager, AtomType, TruthValue
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

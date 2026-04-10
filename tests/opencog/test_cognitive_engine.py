@@ -5,7 +5,6 @@ Tests for the OpenCog cognitive engine integration.
 import pytest
 import asyncio
 import time
-from unittest.mock import Mock, AsyncMock
 
 from aphrodite.opencog.cognitive_engine import CognitiveEngine, CognitiveConfig
 from aphrodite.opencog.atomspace import AtomSpaceManager, AtomType, TruthValue
@@ -115,7 +114,9 @@ class TestCognitiveEngine:
         async with cognitive_engine:
             # Create multiple requests
             requests = [
-                cognitive_engine.process_inference_request(f"Query {i}", {"id": i})
+                cognitive_engine.process_inference_request(
+                    f"Query {i}", {"id": i}
+                )
                 for i in range(5)
             ]
             
@@ -178,8 +179,12 @@ class TestAtomSpaceIntegration:
     def test_truth_value_merging(self, atomspace):
         """Test truth value merging for duplicate atoms."""
         # Create same atom twice with different truth values
-        atom1 = atomspace.create_node("TestNode", AtomType.CONCEPT, TruthValue(0.6, 0.8))
-        atom2 = atomspace.create_node("TestNode", AtomType.CONCEPT, TruthValue(0.8, 0.6))
+        atom1 = atomspace.create_node(
+            "TestNode", AtomType.CONCEPT, TruthValue(0.6, 0.8)
+        )
+        atom2 = atomspace.create_node(
+            "TestNode", AtomType.CONCEPT, TruthValue(0.8, 0.6)
+        )
         
         # Should be the same atom with merged truth value
         assert atom1 == atom2
@@ -208,8 +213,12 @@ class TestCognitiveIntegrationScenarios:
             atomspace = engine.atomspace
             
             # AI concepts
-            ai = atomspace.create_node("AI", AtomType.CONCEPT, TruthValue(0.9, 0.9))
-            ml = atomspace.create_node("ML", AtomType.CONCEPT, TruthValue(0.8, 0.8))
+            ai = atomspace.create_node(
+                "AI", AtomType.CONCEPT, TruthValue(0.9, 0.9)
+            )
+            ml = atomspace.create_node(
+                "ML", AtomType.CONCEPT, TruthValue(0.8, 0.8)
+            )
             
             # Relationship
             atomspace.create_link(
@@ -226,7 +235,9 @@ class TestCognitiveIntegrationScenarios:
             )
             
             assert isinstance(result, dict)
-            confidence = result.get('confidence', result.get('final_confidence', 0))
+            confidence = result.get(
+                'confidence', result.get('final_confidence', 0)
+            )
             assert confidence > 0.0
     
     @pytest.mark.asyncio 
@@ -239,7 +250,7 @@ class TestCognitiveIntegrationScenarios:
         
         async with CognitiveEngine(config) as engine:
             # Process request that should get attention
-            result = await engine.process_inference_request(
+            await engine.process_inference_request(
                 "High priority cognitive task",
                 {"importance": "high", "urgency": "critical"}
             )
@@ -254,7 +265,8 @@ class TestCognitiveIntegrationScenarios:
                 ]
                 
                 # Should have some attention allocation
-                assert len(atoms_with_attention) >= 0  # Could be 0 if fast processing
+                # Could be 0 if fast processing
+                assert len(atoms_with_attention) >= 0
     
     @pytest.mark.asyncio
     async def test_memory_consolidation_scenario(self):
@@ -314,10 +326,9 @@ class TestCognitiveIntegrationScenarios:
             
             # Check results
             successful = [r for r in results if not isinstance(r, Exception)]
-            failed = [r for r in results if isinstance(r, Exception)]
             
-            # Should process most requests successfully
-            assert len(successful) >= num_requests * 0.8  # At least 80% success rate
+            # Should process most requests successfully (at least 80%)
+            assert len(successful) >= num_requests * 0.8
             
             # Should complete in reasonable time (less than 10 seconds)
             assert processing_time < 10.0

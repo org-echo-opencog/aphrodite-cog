@@ -6,15 +6,12 @@ large-scale inference with pattern learning and memory consolidation.
 """
 
 import asyncio
-from typing import List, Optional
 
 from aphrodite import EngineArgs, SamplingParams
 from aphrodite.engine.aphrodite_engine import AphroditeEngine
 from aphrodite.opencog.cognitive_engine import CognitiveEngine, CognitiveConfig
 from aphrodite.opencog.integration import (
-    OpenCogAphroditeEngine, 
-    OpenCogAphroditeEngineBuilder,
-    OpenCogAphroditeConfig
+    OpenCogAphroditeEngineBuilder
 )
 
 
@@ -163,7 +160,7 @@ async def run_cognitive_architecture_demo():
         
         # Get final statistics
         final_stats = cognitive_engine.get_statistics()
-        print(f"\n3. Final Statistics:")
+        print("\n3. Final Statistics:")
         print(f"  AtomSpace size: {final_stats.get('atomspace_size', 0)}")
         print(f"  Memory patterns: {final_stats.get('memory_patterns', 0)}")
         print(f"  Reasoning cache size: {final_stats.get('reasoning_cache_size', 0)}")

@@ -6,12 +6,11 @@ orchestration and acceleration capabilities.
 import asyncio
 import time
 import random
-from typing import List, Dict, Any
 
 from aphrodite.opencog.cognitive_engine import CognitiveEngine, CognitiveConfig
 from aphrodite.opencog.atomspace import AtomSpaceManager, AtomType, TruthValue
 from aphrodite.opencog.reasoning import ProbabilisticReasoner, LogicEngine
-from aphrodite.opencog.orchestrator import InferenceOrchestrator, AttentionManager
+from aphrodite.opencog.orchestrator import AttentionManager
 from aphrodite.opencog.memory import CognitiveMemory
 from aphrodite.opencog.accelerator import CognitiveAccelerator
 
@@ -81,7 +80,7 @@ async def demonstrate_large_scale_inference():
         successful_results = [r for r in results if not isinstance(r, Exception)]
         failed_results = [r for r in results if isinstance(r, Exception)]
         
-        print(f"\n4. Processing Results:")
+        print("\n4. Processing Results:")
         print(f"  Total requests: {len(inference_requests)}")
         print(f"  Successful: {len(successful_results)}")
         print(f"  Failed: {len(failed_results)}")
@@ -139,7 +138,7 @@ async def demonstrate_cognitive_reasoning():
             )
         
         # Create relationship
-        relationship = atomspace.create_link(
+        atomspace.create_link(
             f"{subject}-{relation_type.value}-{predicate}",
             [atoms[subject], atoms[predicate]],
             relation_type,
@@ -242,7 +241,7 @@ async def demonstrate_memory_and_attention():
         
         # Get memory statistics
         memory_stats = memory.get_memory_statistics()
-        print(f"\n4. Memory System Statistics:")
+        print("\n4. Memory System Statistics:")
         for key, value in memory_stats.items():
             print(f"   {key}: {value}")
         
@@ -310,7 +309,7 @@ async def demonstrate_cognitive_acceleration():
     
     # Get acceleration statistics
     acceleration_stats = accelerator.get_acceleration_statistics()
-    print(f"\n3. Acceleration Statistics:")
+    print("\n3. Acceleration Statistics:")
     for key, value in acceleration_stats.items():
         print(f"   {key}: {value}")
 

@@ -86,6 +86,12 @@ ignore = [
     "G004",
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# Example/demo scripts have long print strings that don't need wrapping
+"examples/opencog_integration/*.py" = ["E501"]
+# OpenCog module files have long docstrings and type annotations
+"aphrodite/opencog/*.py" = ["E501"]
+
 [tool.codespell]
 ignore-words-list = "dout, te, indicies, ist, subtile, wit, whit, beseige, devlop, serie, vor, holliday, discus, tennant, carin, parma, mor, slac, revered, chanel, sammon, nast, shepard, insead, bloc, clea, appy, ser, fter, trough, incase"
 skip = "./tests/,./aphrodite/endpoints/kobold/klite.embd,./kernels/,./tests/benchmarks/sonnet.txt,./docs/,./tests/lora/data/long_context_test_data.py,./tests/models/fixtures/"

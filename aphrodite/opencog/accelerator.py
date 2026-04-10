@@ -7,17 +7,17 @@ inference through cognitive heuristics and adaptive algorithms.
 
 import asyncio
 import time
-import math
-from typing import Any, Dict, List, Optional, Callable, Set, Tuple
+from typing import Any, Dict, List, Optional, Callable, Tuple
 from dataclasses import dataclass, field
-from collections import defaultdict, deque, OrderedDict
+from collections import defaultdict, OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import logging
-logger = logging.getLogger(__name__)
 
-from .atomspace import AtomSpaceManager, Atom, AtomType, TruthValue
+from .atomspace import AtomSpaceManager, Atom
 from .cognitive_engine import CognitiveConfig
+
+logger = logging.getLogger(__name__)
 
 
 class LRUCache:

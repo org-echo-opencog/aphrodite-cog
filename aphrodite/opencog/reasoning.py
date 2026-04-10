@@ -7,21 +7,22 @@ probabilistic logic programming and formal reasoning systems.
 
 import asyncio
 import math
-from typing import Any, Dict, List, Optional, Set, Tuple, Callable
+from typing import Any, Dict, List, Optional, Tuple, Callable
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor
 import logging
-logger = logging.getLogger(__name__)
 
 try:
-    from .atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Link, Node
+    from .atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Link
 except ImportError:
     try:
-        from atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Link, Node
+        from atomspace import AtomSpaceManager, Atom, AtomType, TruthValue, Link
     except ImportError:
         # For standalone testing
         import sys
         AtomSpaceManager = sys.modules.get('atomspace').AtomSpaceManager if 'atomspace' in sys.modules else None
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -244,11 +245,10 @@ class ProbabilisticReasoner:
             for atom2 in candidates[i+1:]:
                 if (isinstance(atom1, Link) and isinstance(atom2, Link) and
                     atom1.atom_type == AtomType.IMPLICATION and
-                    atom2.atom_type == AtomType.IMPLICATION):
-                    # Check if they can form a deduction chain
-                    if (len(atom1.outgoing) >= 2 and len(atom2.outgoing) >= 2 and
-                        atom1.outgoing[1] == atom2.outgoing[0]):
-                        return [atom1, atom2]
+                    atom2.atom_type == AtomType.IMPLICATION and
+                    len(atom1.outgoing) >= 2 and len(atom2.outgoing) >= 2 and
+                    atom1.outgoing[1] == atom2.outgoing[0]):
+                    return [atom1, atom2]
         return None
     
     def _find_inheritance_premises(self, target: Atom, candidates: List[Atom]) -> Optional[List[Atom]]:
@@ -461,15 +461,13 @@ class LogicEngine:
         
         # Look for implication links where atom appears
         for candidate in self.atomspace.get_atoms_by_type(AtomType.IMPLICATION):
-            if isinstance(candidate, Link):
-                if atom in candidate.outgoing:
-                    premises.append(candidate)
+            if isinstance(candidate, Link) and atom in candidate.outgoing:
+                premises.append(candidate)
         
         # Look for inheritance relationships
         for candidate in self.atomspace.get_atoms_by_type(AtomType.INHERITANCE):
-            if isinstance(candidate, Link):
-                if atom in candidate.outgoing:
-                    premises.append(candidate)
+            if isinstance(candidate, Link) and atom in candidate.outgoing:
+                premises.append(candidate)
         
         return premises
     

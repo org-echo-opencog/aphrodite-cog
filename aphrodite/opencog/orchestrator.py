@@ -6,18 +6,20 @@ attention allocation mechanisms for cognitive resource management.
 """
 
 import asyncio
+import contextlib
 import heapq
 import time
-from typing import Any, Dict, List, Optional, Callable, Set
+from typing import Any, Dict, List, Optional, Set
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import logging
-logger = logging.getLogger(__name__)
 
-from .atomspace import AtomSpaceManager, Atom, AtomType, TruthValue
+from .atomspace import AtomSpaceManager, Atom, TruthValue
 from .cognitive_engine import CognitiveConfig
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -101,10 +103,8 @@ class InferenceOrchestrator:
             
             if self._processing_task:
                 self._processing_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await self._processing_task
-                except asyncio.CancelledError:
-                    pass
             
             # Wait for active requests to complete
             if self._active_requests:
@@ -514,10 +514,8 @@ class AttentionManager:
             
             if self._update_task:
                 self._update_task.cancel()
-                try:
+                with contextlib.suppress(asyncio.CancelledError):
                     await self._update_task
-                except asyncio.CancelledError:
-                    pass
             
             logger.info("Attention manager stopped")
     

@@ -28,7 +28,7 @@ def demo_configuration_presets():
     
     # Performance-optimized
     perf_config = CognitiveConfig.create_performance_optimized()
-    print(f"\n✓ Performance-Optimized Config:")
+    print("\n✓ Performance-Optimized Config:")
     print(f"  - AtomSpace: {perf_config.atomspace_max_size:,} atoms")
     print(f"  - Cache Size: {perf_config.cache_size:,} entries")
     print(f"  - Reasoning Threads: {perf_config.reasoning_threads}")
@@ -37,7 +37,7 @@ def demo_configuration_presets():
     
     # Memory-optimized
     mem_config = CognitiveConfig.create_memory_optimized()
-    print(f"\n✓ Memory-Optimized Config:")
+    print("\n✓ Memory-Optimized Config:")
     print(f"  - AtomSpace: {mem_config.atomspace_max_size:,} atoms")
     print(f"  - Cache Size: {mem_config.cache_size:,} entries")
     print(f"  - Reasoning Threads: {mem_config.reasoning_threads}")
@@ -46,10 +46,10 @@ def demo_configuration_presets():
     
     # Balanced
     balanced_config = CognitiveConfig.create_balanced()
-    print(f"\n✓ Balanced Config (Default):")
+    print("\n✓ Balanced Config (Default):")
     print(f"  - AtomSpace: {balanced_config.atomspace_max_size:,} atoms")
     print(f"  - Cache Size: {balanced_config.cache_size:,} entries")
-    print(f"  - All features enabled")
+    print("  - All features enabled")
 
 
 def demo_lru_cache():
@@ -71,7 +71,7 @@ def demo_lru_cache():
     print("\n✓ Adding 6th item (triggers LRU eviction):")
     cache.set("key5", "value5", time.time())
     print(f"  Added key5, cache size: {cache.size()}")
-    print(f"  key0 evicted (least recently used)")
+    print("  key0 evicted (least recently used)")
     
     print("\n✓ Accessing key1 (marks as recently used):")
     result = cache.get("key1")
@@ -105,7 +105,7 @@ def demo_batch_operations():
         )
         test_atoms.append(atom)
     
-    print(f"\n✓ Created 100 test atoms")
+    print("\n✓ Created 100 test atoms")
     
     # Single add timing
     from aphrodite.opencog.atomspace import Node
@@ -167,20 +167,20 @@ async def demo_semantic_caching():
     ai = engine.atomspace.create_node("AI", AtomType.CONCEPT, TruthValue(0.9, 0.9))
     ml = engine.atomspace.create_node("ML", AtomType.CONCEPT, TruthValue(0.85, 0.88))
     
-    print(f"\n✓ Created test concepts")
+    print("\n✓ Created test concepts")
     print(f"  - AI: strength={ai.truth_value.strength}, conf={ai.truth_value.confidence}")
     print(f"  - ML: strength={ml.truth_value.strength}, conf={ml.truth_value.confidence}")
     
     # First inference (cache miss)
     start_time = time.time()
-    result1 = engine.reasoner.infer(ai)
+    engine.reasoner.infer(ai)
     time1 = time.time() - start_time
     
     print(f"\n✓ First inference (cache miss): {time1*1000:.2f}ms")
     
     # Second inference with same atom (exact cache hit)
     start_time = time.time()
-    result2 = engine.reasoner.infer(ai)
+    engine.reasoner.infer(ai)
     time2 = time.time() - start_time
     
     print(f"✓ Second inference (exact cache hit): {time2*1000:.2f}ms")
@@ -197,11 +197,11 @@ async def demo_semantic_caching():
     )
     
     start_time = time.time()
-    result3 = engine.reasoner.infer(ai_similar)
+    engine.reasoner.infer(ai_similar)
     time3 = time.time() - start_time
     
     print(f"\n✓ Similar concept inference: {time3*1000:.2f}ms")
-    print(f"  (May benefit from semantic cache)")
+    print("  (May benefit from semantic cache)")
 
 
 async def demo_adaptive_consolidation():
@@ -217,9 +217,9 @@ async def demo_adaptive_consolidation():
     )
     
     async with CognitiveEngine(config) as engine:
-        print(f"\n✓ Engine started with adaptive consolidation")
-        print(f"  - Consolidation threshold: 100 new patterns")
-        print(f"  - Base interval: 120 seconds")
+        print("\n✓ Engine started with adaptive consolidation")
+        print("  - Consolidation threshold: 100 new patterns")
+        print("  - Base interval: 120 seconds")
         
         # Store some memories
         for i in range(50):
@@ -241,15 +241,15 @@ async def demo_adaptive_consolidation():
                 confidence=0.85
             )
         
-        print(f"\n✓ Stored 50 episodic memories")
+        print("\n✓ Stored 50 episodic memories")
         print(f"  - Pattern count: {len(engine.memory.patterns)}")
-        print(f"  - Consolidation will trigger when pattern growth reaches 100")
+        print("  - Consolidation will trigger when pattern growth reaches 100")
         
         # Wait a bit
         await asyncio.sleep(0.5)
         
         stats = engine.memory._access_stats
-        print(f"\n✓ Memory statistics:")
+        print("\n✓ Memory statistics:")
         print(f"  - Consolidations performed: {stats.get('consolidations_performed', 0)}")
         print(f"  - Memories forgotten: {stats.get('memories_forgotten', 0)}")
 
